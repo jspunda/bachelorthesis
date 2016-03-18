@@ -91,5 +91,5 @@ class ANNField:
 A = data.imread("..\\img\\vidpair211.jpg")
 B = data.imread("..\\img\\vidpair212.jpg")
 field = ANNField(A, B, 3)
-field.write_mat()
+# field.write_mat()
 field.show_field()
