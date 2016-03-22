@@ -24,22 +24,22 @@ class ANNField:
         patches_a = self.patchify(self.img_A, self.patch_height, self.patch_width)
         pca = PCA(n_components=10)
         print("Applying dimensionality reduction")
-        # pca.fit(patchesA)
-        # patchesA = pca.transform(patchesA)
+        # pca.fit(patches_a)
+        # patches_a = pca.transform(patches_a)
         print("Image A converted.")
         print("Converting image B to patches...")
         patches_b = self.patchify(self.img_B, self.patch_height, self.patch_width)
         print("Applying dimensionality reduction")
-        # pca.fit(patchesB)
-        # patchesB = pca.transform(patchesB)
+        # pca.fit(patches_b)
+        # patches_b = pca.transform(patches_b)
         print("Image B converted.")
 
         # Fit and find k-NN.
         print("Fitting k-NN...")
-        nbrs = NearestNeighbors(n_neighbors=self.nearest_neighbors, algorithm='kd_tree').fit(patches_b)
+        neighbors = NearestNeighbors(n_neighbors=self.nearest_neighbors, algorithm="kd_tree").fit(patches_b)
         print("k-NN fitted.")
         print("Finding k-NN...")
-        distances, indices = nbrs.kneighbors(patches_a)
+        distances, indices = neighbors.kneighbors(patches_a)
         print("k-NN found.")
 
         # Build the NN-field from distances and indices
@@ -71,13 +71,19 @@ class ANNField:
 
     def write_mat(self):
         # Write to .mat file to be imported in MATLAB
-        sio.savemat("..\\output\\ann_field.mat", {'ann_field': self.ann_field})
+        print("Writing ann field to .mat file...")
+        sio.savemat("..\\output\\ann_field.mat", {"ann_field": self.ann_field})
+        print("Done writing.")
 
     def show_field(self):
         # Plot the ANN-field and original images
         _, ax = plt.subplots(ncols=2, nrows=2)
-        ax[0][0].imshow(self.ann_field[:, :, 2], cmap='Greys_r')
-        ax[0][1].imshow(self.ann_field[:, :, 1], cmap='Greys_r')
+        ax[0][0].set_title("Error map")
+        ax[0][1].set_title("Ann-Field X-Coords")
+        ax[1][0].set_title("Original image A")
+        ax[1][1].set_title("Original image B")
+        ax[0][0].imshow(self.ann_field[:, :, 2], cmap="Greys_r")
+        ax[0][1].imshow(self.ann_field[:, :, 1], cmap="Greys_r")
         ax[1][0].imshow(self.img_A)
         ax[1][1].imshow(self.img_B)
         plt.show()
