@@ -1,4 +1,3 @@
-from skimage import data
 import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
 import numpy as np
@@ -86,9 +85,3 @@ class ANNField:
         ax[1][0].imshow(self.img_A)
         ax[1][1].imshow(self.img_B)
         plt.show()
-
-A = data.imread("..\\img\\vidpair211.jpg")
-B = data.imread("..\\img\\vidpair212.jpg")
-field = ANNField(A, B, 3, 10)
-# field.write_mat()
-field.show_field()
