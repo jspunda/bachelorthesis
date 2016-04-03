@@ -9,12 +9,13 @@ import scipy.io as sio
 
 class ANNField:
 
-    def __init__(self, a, b, patch_size):
+    def __init__(self, a, b, patch_size, dim_rec=-1):
         self.img_A = a
         self.img_B = b
         # Assume patch_w = patch_h
         self.patch_width = patch_size
         self.patch_height = patch_size
+        self.dim_rec = dim_rec
         self.nearest_neighbors = 1
         self.ann_field = self.build_ann_field()
 
@@ -22,16 +23,13 @@ class ANNField:
         # Create patches vectors from image vectors.
         print("Converting image A to patches...")
         patches_a = self.patchify(self.img_A, self.patch_height, self.patch_width)
-        pca = PCA(n_components=10)
-        print("Applying dimensionality reduction")
-        # pca.fit(patches_a)
-        # patches_a = pca.transform(patches_a)
+        if self.dim_rec > -1:
+            patches_a = self.apply_pca(patches_a, self.dim_rec)
         print("Image A converted.")
         print("Converting image B to patches...")
         patches_b = self.patchify(self.img_B, self.patch_height, self.patch_width)
-        print("Applying dimensionality reduction")
-        # pca.fit(patches_b)
-        # patches_b = pca.transform(patches_b)
+        if self.dim_rec > -1:
+            patches_b = self.apply_pca(patches_b, self.dim_rec)
         print("Image B converted.")
 
         # Fit and find k-NN.
@@ -78,7 +76,7 @@ class ANNField:
     def show_field(self):
         # Plot the ANN-field and original images
         _, ax = plt.subplots(ncols=2, nrows=2)
-        ax[0][0].set_title("Error map")
+        ax[0][0].set_title("L2 Distances")
         ax[0][1].set_title("Ann-Field X-Coords")
         ax[1][0].set_title("Original image A")
         ax[1][1].set_title("Original image B")
@@ -89,6 +87,13 @@ class ANNField:
         plt.show()
 
     @staticmethod
+    def apply_pca(vector, components):
+        print("Applying dimensionality reduction")
+        pca = PCA(n_components=components)
+        pca.fit(vector)
+        return pca.transform(vector)
+
+    @staticmethod
     def patchify(img, patch_height, patch_width):
         img = image.extract_patches_2d(img, (patch_height, patch_width))
         (nr_of_patches, dimensions) = (img.shape[0], img.shape[1] * img.shape[2] * img.shape[3])
@@ -96,6 +101,6 @@ class ANNField:
 
 A = data.imread("..\\img\\vidpair211.jpg")
 B = data.imread("..\\img\\vidpair212.jpg")
-field = ANNField(A, B, 3)
+field = ANNField(A, B, 3, 10)
 # field.write_mat()
 field.show_field()
