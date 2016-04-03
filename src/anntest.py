@@ -14,7 +14,7 @@ class ANNTest:
         self.average_time = 0
         self.average_l2 = 0
         self.dim_rec = dim_rec
-        if self.dim_rec > -1:
+        if self.dim_rec == -1:
             self.filename = str(self.pairs) + "pairs" + str(patch_size) + "Patchsize" + "NoPCA.txt"
         else:
             self.filename = str(self.pairs) + "Pairs" + str(patch_size) + "Patchsize" + str(dim_rec) + "PCA.txt"
@@ -47,7 +47,7 @@ class ANNTest:
 
     def write_test(self):
         f = open("..\\output\\" + self.filename, 'w')
-        f.write("Average time: " + str(self.average_time) + " sec\n")
+        f.write("Average time per pair: " + str(self.average_time) + " sec\n")
         f.write("Average L2 distance: " + str(self.average_l2) + '\n')
 
     def plot_test(self):
@@ -55,7 +55,7 @@ class ANNTest:
         plt.ticklabel_format(style="plain", useOffset=False)
         plt.show()
 
-test = ANNTest(1, 3, 10)
+test = ANNTest(10, 3)
 test.print_result()
-# test.write_test()
+test.write_test()
 # test.plot_test()
