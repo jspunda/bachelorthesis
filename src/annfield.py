@@ -2,9 +2,8 @@ from skimage import data
 import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
 import numpy as np
-from sklearn.feature_extraction import image
-from sklearn.decomposition import PCA
 import scipy.io as sio
+import util
 
 
 class ANNField:
@@ -22,14 +21,16 @@ class ANNField:
     def build_ann_field(self):
         # Create patches vectors from image vectors.
         print("Converting image A to patches...")
-        patches_a = self.patchify(self.img_A, self.patch_height, self.patch_width)
+        patches_a = util.patchify(self.img_A, self.patch_height, self.patch_width)
         if self.dim_rec > -1:
-            patches_a = self.apply_pca(patches_a, self.dim_rec)
+            print("Applying dimensionality reduction")
+            patches_a = util.apply_pca(patches_a, self.dim_rec)
         print("Image A converted.")
         print("Converting image B to patches...")
-        patches_b = self.patchify(self.img_B, self.patch_height, self.patch_width)
+        patches_b = util.patchify(self.img_B, self.patch_height, self.patch_width)
         if self.dim_rec > -1:
-            patches_b = self.apply_pca(patches_b, self.dim_rec)
+            print("Applying dimensionality reduction")
+            patches_b = util.apply_pca(patches_b, self.dim_rec)
         print("Image B converted.")
 
         # Fit and find k-NN.
@@ -85,19 +86,6 @@ class ANNField:
         ax[1][0].imshow(self.img_A)
         ax[1][1].imshow(self.img_B)
         plt.show()
-
-    @staticmethod
-    def apply_pca(vector, components):
-        print("Applying dimensionality reduction")
-        pca = PCA(n_components=components)
-        pca.fit(vector)
-        return pca.transform(vector)
-
-    @staticmethod
-    def patchify(img, patch_height, patch_width):
-        img = image.extract_patches_2d(img, (patch_height, patch_width))
-        (nr_of_patches, dimensions) = (img.shape[0], img.shape[1] * img.shape[2] * img.shape[3])
-        return img.reshape(nr_of_patches, dimensions)  # Reshape to have a flattened representation of a pixel patch
 
 A = data.imread("..\\img\\vidpair211.jpg")
 B = data.imread("..\\img\\vidpair212.jpg")
