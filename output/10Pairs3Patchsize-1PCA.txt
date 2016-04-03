@@ -1,2 +1,0 @@
-Average time: 40.21540017127991 sec
-Average L2 distance: 21.6900457982
