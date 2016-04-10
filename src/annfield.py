@@ -1,5 +1,5 @@
-import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
 import util
@@ -13,7 +13,7 @@ class ANNField:
         # Assume patch_w = patch_h
         self.patch_width = patch_size
         self.patch_height = patch_size
-        self.dim_rec = dim_red
+        self.dim_red = dim_red
         self.nearest_neighbors = 1
         self.ann_field = self.build_ann_field()
 
@@ -21,15 +21,15 @@ class ANNField:
         # Create patches vectors from image vectors.
         print("Converting image A to patches...")
         patches_a = util.patchify(self.img_A, self.patch_height, self.patch_width)
-        if self.dim_rec > -1:
+        if self.dim_red > -1:
             print("Applying dimensionality reduction")
-            patches_a = util.apply_pca(patches_a, self.dim_rec)
+            patches_a = util.apply_pca(patches_a, self.dim_red)
         print("Image A converted.")
         print("Converting image B to patches...")
         patches_b = util.patchify(self.img_B, self.patch_height, self.patch_width)
-        if self.dim_rec > -1:
+        if self.dim_red > -1:
             print("Applying dimensionality reduction")
-            patches_b = util.apply_pca(patches_b, self.dim_rec)
+            patches_b = util.apply_pca(patches_b, self.dim_red)
         print("Image B converted.")
 
         # Fit and find k-NN.
@@ -70,7 +70,11 @@ class ANNField:
     def write_mat(self):
         # Write to .mat file to be imported in MATLAB
         print("Writing ann field to .mat file...")
-        sio.savemat("..\\output\\ann_field.mat", {"ann_field": self.ann_field})
+        if self.dim_red > -1:
+            filename = "..\\output\\" + str(self.patch_width) + "Patchsize" + str(self.dim_red) + "PCA.mat"
+        else:
+            filename = "..\\output\\" + str(self.patch_width) + "PatchsizeNoPCA.mat"
+        sio.savemat(filename, {"ann_field": self.ann_field})
         print("Done writing.")
 
     def show_field(self):
