@@ -7,13 +7,13 @@ import util
 
 class ANNField:
 
-    def __init__(self, a, b, patch_size, dim_rec=-1):
+    def __init__(self, a, b, patch_size, dim_red=-1):
         self.img_A = a
         self.img_B = b
         # Assume patch_w = patch_h
         self.patch_width = patch_size
         self.patch_height = patch_size
-        self.dim_rec = dim_rec
+        self.dim_rec = dim_red
         self.nearest_neighbors = 1
         self.ann_field = self.build_ann_field()
 

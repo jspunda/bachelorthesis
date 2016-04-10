@@ -8,16 +8,16 @@ from skimage import data
 
 class ANNTest:
 
-    def __init__(self, pairs, patch_size, dim_rec=-1):
+    def __init__(self, pairs, patch_size, dim_red=-1):
         self.pairs = pairs
         self.patch_size = patch_size
         self.average_time = 0
         self.average_l2 = 0
-        self.dim_rec = dim_rec
+        self.dim_rec = dim_red
         if self.dim_rec == -1:
             self.filename = str(self.pairs) + "pairs" + str(patch_size) + "Patchsize" + "NoPCA.txt"
         else:
-            self.filename = str(self.pairs) + "Pairs" + str(patch_size) + "Patchsize" + str(dim_rec) + "PCA.txt"
+            self.filename = str(self.pairs) + "Pairs" + str(patch_size) + "Patchsize" + str(dim_red) + "PCA.txt"
         self.run_test()
 
     def run_test(self):
