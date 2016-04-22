@@ -26,8 +26,8 @@ class ANNTest:
         total_l2 = 0
         for i in range(1, self.pairs*2, 2):
             print("Testing image pair", math.ceil(i/2))
-            filename_a = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\small\\vidpair" + str(i) + ".jpg"
-            filename_b = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\small\\vidpair" + str(i + 1) + ".jpg"
+            filename_a = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\vidpair" + str(1) + ".jpg"
+            filename_b = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\vidpair" + str(1 + 1) + ".jpg"
             img_a = data.imread(filename_a)
             img_b = data.imread(filename_b)
             start = time.time()
@@ -56,7 +56,8 @@ class ANNTest:
         plt.ticklabel_format(style="plain", useOffset=False)
         plt.show()
 
-test = ANNTest(1, 3, 10)
+test = ANNTest(1, 8, 5)
 test.print_result()
 # test.write_result()
-# test.field.write_mat()
+test.field.write_mat()
+test.field.show_field()

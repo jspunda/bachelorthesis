@@ -1,7 +1,10 @@
 from sklearn.neighbors import NearestNeighbors
+from sklearn.decomposition import PCA
+from scipy.spatial import distance
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
+import random
 import util
 
 
@@ -15,22 +18,34 @@ class ANNField:
         self.patch_height = patch_size
         self.dim_red = dim_red
         self.nearest_neighbors = 1
-        self.ann_field = self.build_ann_field()
+        self.ann_field = self.build_ann_field
 
+    @property
     def build_ann_field(self):
+        res_a = self.img_A
+        res_b = self.img_B
+        res_a = np.reshape(res_a, (res_a.shape[0]*res_a.shape[1], 3))
+        res_b = np.reshape(res_a, (res_b.shape[0]*res_b.shape[1], 3))
+
         # Create patches vectors from image vectors.
-        print("Converting image A to patches...")
+        print("Converting images to patches...")
+        pca = PCA(n_components=self.dim_red)
         patches_a = util.patchify(self.img_A, self.patch_height, self.patch_width)
-        if self.dim_red > -1:
-            print("Applying dimensionality reduction")
-            patches_a = util.apply_pca(patches_a, self.dim_red)
-        print("Image A converted.")
-        print("Converting image B to patches...")
         patches_b = util.patchify(self.img_B, self.patch_height, self.patch_width)
+        patches_a_old = patches_a
+        patches_b_old = patches_b
+        print("Images converted.")
         if self.dim_red > -1:
             print("Applying dimensionality reduction")
-            patches_b = util.apply_pca(patches_b, self.dim_red)
-        print("Image B converted.")
+            print("Creating samples")
+            a = patches_a[np.random.choice(patches_a.shape[0], 15, replace=False)]
+            b = patches_b[np.random.choice(patches_b.shape[0], 15, replace=False)]
+            print("Done")
+            pca.fit(np.concatenate((a, b), axis=0))
+            print("PCA fitted")
+            patches_a = pca.transform(patches_a)
+            patches_b = pca.transform(patches_b)
+            print("PCA transformed")
 
         # Fit and find k-NN.
         print("Fitting k-NN...")
@@ -48,22 +63,31 @@ class ANNField:
         # Create list of all coordinates in order to insert pixel patch indices into the right row and columns
         coordinates = [(y, x) for y in range(0, self.img_B.shape[0] - self.patch_height + 1)
                        for x in range(0, self.img_B.shape[1] - self.patch_width + 1)]
+        distances1 = []
         for i in range(0, indices.shape[0]):
             # Map pixel indices to actual image coordinates
             y_a = coordinates[i][0]
             x_a = coordinates[i][1]
             y_b = coordinates[indices[i]][0]
             x_b = coordinates[indices[i]][1]
+            # Compute L2 dist in original space
+            di = util.dist(np.array(patches_a_old[i], dtype=np.int16),
+                           np.array(patches_b_old[indices[i]][0], dtype=np.int16))
+            # di =1
+            distances1.append(di)
             # Place all x coordinates of the nearest neighbors into the first layer of the NN-Field.
             self.ann_field[y_a][x_a][0] = x_b
             # Place all y coordinates of the nearest neighbors into the second layer of the NN-Field.
             self.ann_field[y_a][x_a][1] = y_b
-
         # Finally, the third layer of the NN-field contains all the L2 distances
         # Value on nn_field[y][x][2] means the L2 dist to the nearest patch in B for the patch on position (y, x) in A
         dist = distances.reshape(self.img_B.shape[0] - self.patch_height + 1,
                                  self.img_B.shape[1] - self.patch_width + 1)
-        self.ann_field[:, :, 2] = dist
+        distances1 = np.array(distances1)
+        dist2 = distances1.reshape(self.img_B.shape[0] - self.patch_height + 1,
+                                   self.img_B.shape[1] - self.patch_width + 1)
+        print(np.mean(dist), np.mean(dist2))
+        self.ann_field[:, :, 2] = dist2
         print("Finished.")
         return self.ann_field
 
@@ -84,7 +108,7 @@ class ANNField:
         ax[0][1].set_title("Ann-Field X-Coords")
         ax[1][0].set_title("Original image A")
         ax[1][1].set_title("Original image B")
-        ax[0][0].imshow(self.ann_field[:, :, 2], cmap="Greys_r")
+        ax[0][0].imshow(self.ann_field[:, :, 2])
         ax[0][1].imshow(self.ann_field[:, :, 1], cmap="Greys_r")
         ax[1][0].imshow(self.img_A)
         ax[1][1].imshow(self.img_B)
