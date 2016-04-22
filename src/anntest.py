@@ -56,8 +56,8 @@ class ANNTest:
         plt.ticklabel_format(style="plain", useOffset=False)
         plt.show()
 
-test = ANNTest(1, 8, 5)
+test = ANNTest(1, 8, 4)
 test.print_result()
 # test.write_result()
-test.field.write_mat()
+# test.field.write_mat()
 test.field.show_field()

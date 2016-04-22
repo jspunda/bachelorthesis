@@ -71,9 +71,8 @@ class ANNField:
             y_b = coordinates[indices[i]][0]
             x_b = coordinates[indices[i]][1]
             # Compute L2 dist in original space
-            di = util.dist(np.array(patches_a_old[i], dtype=np.int16),
-                           np.array(patches_b_old[indices[i]][0], dtype=np.int16))
-            # di =1
+            di = np.linalg.norm(np.array(patches_a_old[i], dtype=np.float64) -
+                                np.array(patches_b_old[indices[i]][0], dtype=np.float64))
             distances1.append(di)
             # Place all x coordinates of the nearest neighbors into the first layer of the NN-Field.
             self.ann_field[y_a][x_a][0] = x_b
