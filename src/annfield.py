@@ -38,13 +38,17 @@ class ANNField:
         if self.dim_red > -1:
             print("Applying dimensionality reduction")
             print("Creating samples")
-            a = patches_a[np.random.choice(patches_a.shape[0], 15, replace=False)]
-            b = patches_b[np.random.choice(patches_b.shape[0], 15, replace=False)]
+            a = patches_a[np.random.choice(patches_a.shape[0], 100, replace=False), :]
+            b = patches_b[np.random.choice(patches_b.shape[0], 100, replace=False), :]
+            print (a.shape)
+            print (b.shape)
+            print(np.concatenate((a,b), axis=0).shape)
             print("Done")
             pca.fit(np.concatenate((a, b), axis=0))
             print("PCA fitted")
             patches_a = pca.transform(patches_a)
             patches_b = pca.transform(patches_b)
+            print(patches_a.shape)
             print("PCA transformed")
 
         # Fit and find k-NN.
@@ -53,7 +57,15 @@ class ANNField:
         print("k-NN fitted.")
         print("Finding k-NN...")
         distances, indices = neighbors.kneighbors(patches_a)
+        print(np.mean(distances))
         print("k-NN found.")
+        print(indices.shape)
+        indices = indices.reshape(len(indices))
+        print(indices.shape)
+        distances_original = np.linalg.norm(np.array(patches_a_old, dtype=np.float64)-
+                                            np.array(patches_b_old[indices,:], dtype=np.float64), axis=1)
+        print(np.mean(distances_original))
+
 
         # Build the NN-field from distances and indices
         print("Building NN-Field...")
@@ -63,30 +75,22 @@ class ANNField:
         # Create list of all coordinates in order to insert pixel patch indices into the right row and columns
         coordinates = [(y, x) for y in range(0, self.img_B.shape[0] - self.patch_height + 1)
                        for x in range(0, self.img_B.shape[1] - self.patch_width + 1)]
-        distances1 = []
         for i in range(0, indices.shape[0]):
             # Map pixel indices to actual image coordinates
             y_a = coordinates[i][0]
             x_a = coordinates[i][1]
             y_b = coordinates[indices[i]][0]
             x_b = coordinates[indices[i]][1]
-            # Compute L2 dist in original space
-            di = np.linalg.norm(np.array(patches_a_old[i], dtype=np.float64) -
-                                np.array(patches_b_old[indices[i]][0], dtype=np.float64))
-            distances1.append(di)
             # Place all x coordinates of the nearest neighbors into the first layer of the NN-Field.
             self.ann_field[y_a][x_a][0] = x_b
             # Place all y coordinates of the nearest neighbors into the second layer of the NN-Field.
             self.ann_field[y_a][x_a][1] = y_b
         # Finally, the third layer of the NN-field contains all the L2 distances
         # Value on nn_field[y][x][2] means the L2 dist to the nearest patch in B for the patch on position (y, x) in A
-        dist = distances.reshape(self.img_B.shape[0] - self.patch_height + 1,
+        dist = distances_original.reshape(self.img_B.shape[0] - self.patch_height + 1,
                                  self.img_B.shape[1] - self.patch_width + 1)
-        distances1 = np.array(distances1)
-        dist2 = distances1.reshape(self.img_B.shape[0] - self.patch_height + 1,
-                                   self.img_B.shape[1] - self.patch_width + 1)
-        print(np.mean(dist), np.mean(dist2))
-        self.ann_field[:, :, 2] = dist2
+        print(np.mean(dist))
+        self.ann_field[:, :, 2] = dist
         print("Finished.")
         return self.ann_field
 

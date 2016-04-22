@@ -8,13 +8,14 @@ from skimage import data
 
 class ANNTest:
 
-    def __init__(self, pairs, patch_size, dim_red=-1):
+    def __init__(self, pairs, patch_size, dim_red=-1, dataset="large"):
         self.pairs = pairs
         self.field = []
         self.patch_size = patch_size
         self.average_time = 0
         self.average_l2 = 0
         self.dim_red = dim_red
+        self.dataset = dataset
         if self.dim_red == -1:
             self.filename = str(self.pairs) + "Pairs" + str(patch_size) + "Patchsize" + "NoPCA.txt"
         else:
@@ -26,8 +27,13 @@ class ANNTest:
         total_l2 = 0
         for i in range(1, self.pairs*2, 2):
             print("Testing image pair", math.ceil(i/2))
-            filename_a = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\vidpair" + str(1) + ".jpg"
-            filename_b = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\vidpair" + str(1 + 1) + ".jpg"
+            if self.dataset == "large":
+                filename_a = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\vidpair" + str(1) + ".jpg"
+                filename_b = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\vidpair" + str(1 + 1) + ".jpg"
+            else:
+                if self.dataset == "small":
+                    filename_a = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\small\\vidpair" + str(1) + ".jpg"
+                    filename_b = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\small\\vidpair" + str(1 + 1) + ".jpg"
             img_a = data.imread(filename_a)
             img_b = data.imread(filename_b)
             start = time.time()
@@ -56,8 +62,8 @@ class ANNTest:
         plt.ticklabel_format(style="plain", useOffset=False)
         plt.show()
 
-test = ANNTest(1, 8, 4)
+test = ANNTest(1, 3, 10, "small")
 test.print_result()
 # test.write_result()
-# test.field.write_mat()
+test.field.write_mat()
 test.field.show_field()
