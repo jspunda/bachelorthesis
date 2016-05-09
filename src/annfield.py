@@ -4,7 +4,7 @@ from scipy.spatial import distance
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
-import random
+import math
 import util
 
 
@@ -22,76 +22,70 @@ class ANNField:
 
     @property
     def build_ann_field(self):
-        res_a = self.img_A
-        res_b = self.img_B
-        res_a = np.reshape(res_a, (res_a.shape[0]*res_a.shape[1], 3))
-        res_b = np.reshape(res_a, (res_b.shape[0]*res_b.shape[1], 3))
-
         # Create patches vectors from image vectors.
-        print("Converting images to patches...")
+        # print("Converting images to patches...")
         pca = PCA(n_components=self.dim_red)
         patches_a = util.patchify(self.img_A, self.patch_height, self.patch_width)
         patches_b = util.patchify(self.img_B, self.patch_height, self.patch_width)
         patches_a_old = patches_a
         patches_b_old = patches_b
-        print("Images converted.")
+        # print("Images converted.")
         if self.dim_red > -1:
-            print("Applying dimensionality reduction")
-            print("Creating samples")
-            a = patches_a[np.random.choice(patches_a.shape[0], 100, replace=False), :]
-            b = patches_b[np.random.choice(patches_b.shape[0], 100, replace=False), :]
-            print (a.shape)
-            print (b.shape)
-            print(np.concatenate((a,b), axis=0).shape)
-            print("Done")
-            pca.fit(np.concatenate((a, b), axis=0))
-            print("PCA fitted")
+            # print("Applying dimensionality reduction")
+            # print("Creating samples")
+            a = patches_a[np.random.choice(patches_a.shape[0], 10, replace=False), :]
+            b = patches_b[np.random.choice(patches_b.shape[0], 10, replace=False), :]
+            # a = [i for i in range(10)]
+            # b = [i for i in range(10)]
+            # for i in range(0, 10):
+            #     a[i] = np.random.randint(3, size=27)
+            #     b[i] = np.random.randint(255, size=27)
+            # print("Done")
+
+            print(np.mean(a))
+            print("sdfa")
+            print(np.mean(b))
+            pca.fit(b)
+            # print("PCA fitted")
             patches_a = pca.transform(patches_a)
             patches_b = pca.transform(patches_b)
-            print(patches_a.shape)
-            print("PCA transformed")
+            print(np.sum(patches_a))
+            print(np.sum(patches_b))
+            # print("PCA transformed")
 
         # Fit and find k-NN.
-        print("Fitting k-NN...")
+        # print("Fitting k-NN...")
         neighbors = NearestNeighbors(n_neighbors=self.nearest_neighbors, algorithm="kd_tree").fit(patches_b)
-        print("k-NN fitted.")
-        print("Finding k-NN...")
+        # print("k-NN fitted.")
+        # print("Finding k-NN...")
         distances, indices = neighbors.kneighbors(patches_a)
-        print(np.mean(distances))
-        print("k-NN found.")
-        print(indices.shape)
+        # print("k-NN found.")
         indices = indices.reshape(len(indices))
-        print(indices.shape)
-        distances_original = np.linalg.norm(np.array(patches_a_old, dtype=np.float64)-
-                                            np.array(patches_b_old[indices,:], dtype=np.float64), axis=1)
-        print(np.mean(distances_original))
-
 
         # Build the NN-field from distances and indices
-        print("Building NN-Field...")
+        # print("Building NN-Field...")
         # Initialize empty nn-field of size imgB_height * imgB_width * 3
         self.ann_field = np.zeros((self.img_B.shape[0] - self.patch_height + 1,
                                    self.img_B.shape[1] - self.patch_width + 1, 3))
-        # Create list of all coordinates in order to insert pixel patch indices into the right row and columns
-        coordinates = [(y, x) for y in range(0, self.img_B.shape[0] - self.patch_height + 1)
-                       for x in range(0, self.img_B.shape[1] - self.patch_width + 1)]
-        for i in range(0, indices.shape[0]):
-            # Map pixel indices to actual image coordinates
-            y_a = coordinates[i][0]
-            x_a = coordinates[i][1]
-            y_b = coordinates[indices[i]][0]
-            x_b = coordinates[indices[i]][1]
-            # Place all x coordinates of the nearest neighbors into the first layer of the NN-Field.
-            self.ann_field[y_a][x_a][0] = x_b
-            # Place all y coordinates of the nearest neighbors into the second layer of the NN-Field.
-            self.ann_field[y_a][x_a][1] = y_b
-        # Finally, the third layer of the NN-field contains all the L2 distances
-        # Value on nn_field[y][x][2] means the L2 dist to the nearest patch in B for the patch on position (y, x) in A
+        # Compute distances in original dimensional space (before PCA)
+        # print("nn distances")
+        distances_original = np.linalg.norm(np.array(patches_a_old, dtype=np.int32) -
+                                            np.array(patches_b_old[indices, :], dtype=np.int32), axis=1)
+
+        # Reshape indices to match original image width and height
         dist = distances_original.reshape(self.img_B.shape[0] - self.patch_height + 1,
-                                 self.img_B.shape[1] - self.patch_width + 1)
-        print(np.mean(dist))
+                                          self.img_B.shape[1] - self.patch_width + 1)
+        # Reshape indices to match original image width and height
+        indices = indices.reshape(self.img_B.shape[0] - self.patch_height + 1,
+                                  self.img_B.shape[1] - self.patch_width + 1)
+        # Insert x coords into the first layer of the ann field
+        self.ann_field[:, :, 0] = np.remainder(indices, (self.img_B.shape[1] - self.patch_height + 1))
+        # Insert x coords into the second layer of the ann field
+        self.ann_field[:, :, 1] = np.floor_divide(indices, (self.img_B.shape[1] - self.patch_width + 1))
+        # The third layer of the NN-field contains all the L2 distances
+        # Value on nn_field[y][x][2] means the L2 dist to the nearest patch in B for the patch on position (y, x) in A
         self.ann_field[:, :, 2] = dist
-        print("Finished.")
+        # print("Finished.")
         return self.ann_field
 
     def write_mat(self):

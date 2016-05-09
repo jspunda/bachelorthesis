@@ -4,6 +4,7 @@ import time
 import math
 import matplotlib.pyplot as plt
 from skimage import data
+import scipy.io as sio
 
 
 class ANNTest:
@@ -28,12 +29,12 @@ class ANNTest:
         for i in range(1, self.pairs*2, 2):
             print("Testing image pair", math.ceil(i/2))
             if self.dataset == "large":
-                filename_a = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\vidpair" + str(1) + ".jpg"
-                filename_b = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\vidpair" + str(1 + 1) + ".jpg"
+                filename_a = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\vidpair" + str(i) + ".jpg"
+                filename_b = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\vidpair" + str(i + 1) + ".jpg"
             else:
                 if self.dataset == "small":
-                    filename_a = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\small\\vidpair" + str(1) + ".jpg"
-                    filename_b = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\small\\vidpair" + str(1 + 1) + ".jpg"
+                    filename_a = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\small\\vidpair" + str(i) + ".jpg"
+                    filename_b = "E:\\STACK\Bachelor Thesis\\Vidpairs_Dataset\\small\\vidpair" + str(i + 1) + ".jpg"
             img_a = data.imread(filename_a)
             img_b = data.imread(filename_b)
             start = time.time()
@@ -62,8 +63,36 @@ class ANNTest:
         plt.ticklabel_format(style="plain", useOffset=False)
         plt.show()
 
+times = []
+averages = []
+
 test = ANNTest(1, 3, 10, "small")
 test.print_result()
-# test.write_result()
 test.field.write_mat()
-test.field.show_field()
+times.append(test.average_time)
+averages.append(test.average_l2)
+
+# test2 = ANNTest(10, 3, 2, "small")
+# times.append(test2.average_time)
+# averages.append(test2.average_l2)
+#
+# test3 = ANNTest(10, 3, 3, "small")
+# times.append(test3.average_time)
+# averages.append(test3.average_l2)
+#
+# test4 = ANNTest(10, 3, 4, "small")
+# times.append(test4.average_time)
+# averages.append(test4.average_l2)
+
+# test5 = ANNTest(10, 2, 5, "small")
+# times.append(test5.average_time)
+# averages.append(test5.average_l2)
+
+# sio.savemat("..\\output\\test", {"times": times,
+#                                 "averages": averages})
+#
+# print(times, averages)
+# plt.plot(times, averages, 'bo')
+# plt.plot(times, averages)
+# plt.ticklabel_format(style="plain", useOffset=False)
+# plt.show()
