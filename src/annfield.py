@@ -1,16 +1,14 @@
 from sklearn.neighbors import NearestNeighbors
 from sklearn.decomposition import PCA
-from scipy.spatial import distance
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
-import math
 import util
 
 
 class ANNField:
 
-    def __init__(self, a, b, patch_size, dim_red=-1):
+    def __init__(self, a, b, patch_size, dim_red=-1, pca_fit=1):
         self.img_A = a
         self.img_B = b
         # Assume patch_w = patch_h
@@ -18,6 +16,7 @@ class ANNField:
         self.patch_height = patch_size
         self.dim_red = dim_red
         self.nearest_neighbors = 1
+        self.pca_fit = pca_fit
         self.ann_field = self.build_ann_field
 
     @property
@@ -33,24 +32,13 @@ class ANNField:
         if self.dim_red > -1:
             # print("Applying dimensionality reduction")
             # print("Creating samples")
-            a = patches_a[np.random.choice(patches_a.shape[0], 10, replace=False), :]
-            b = patches_b[np.random.choice(patches_b.shape[0], 10, replace=False), :]
-            # a = [i for i in range(10)]
-            # b = [i for i in range(10)]
-            # for i in range(0, 10):
-            #     a[i] = np.random.randint(3, size=27)
-            #     b[i] = np.random.randint(255, size=27)
-            # print("Done")
-
-            print(np.mean(a))
-            print("sdfa")
-            print(np.mean(b))
-            pca.fit(b)
+            a = patches_a[np.random.choice(patches_a.shape[0], patches_a.shape[0]*self.pca_fit, replace=False), :]
+            b = patches_b[np.random.choice(patches_b.shape[0], patches_b.shape[0]*self.pca_fit, replace=False), :]
+            conc = np.concatenate((a, b), axis=0)
+            pca.fit(conc)
             # print("PCA fitted")
             patches_a = pca.transform(patches_a)
             patches_b = pca.transform(patches_b)
-            print(np.sum(patches_a))
-            print(np.sum(patches_b))
             # print("PCA transformed")
 
         # Fit and find k-NN.
@@ -109,4 +97,11 @@ class ANNField:
         ax[0][1].imshow(self.ann_field[:, :, 1], cmap="Greys_r")
         ax[1][0].imshow(self.img_A)
         ax[1][1].imshow(self.img_B)
+        plt.show()
+
+    def show_field_sep(self):
+        # Plot the ANN-field and original images
+        plt.imshow(self.ann_field[:, :, 2])
+        plt.show()
+        plt.imshow(self.ann_field[:, :, 1], cmap="Greys_r")
         plt.show()

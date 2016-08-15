@@ -1,6 +1,5 @@
 from sklearn.feature_extraction import image
 import numpy as np
-import math
 
 
 def patchify(img, patch_height, patch_width):

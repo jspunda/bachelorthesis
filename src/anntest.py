@@ -9,7 +9,7 @@ import scipy.io as sio
 
 class ANNTest:
 
-    def __init__(self, pairs, patch_size, dim_red=-1, dataset="large"):
+    def __init__(self, pairs, patch_size, dim_red=-1, pca_fit=1, dataset="large"):
         self.pairs = pairs
         self.field = []
         self.patch_size = patch_size
@@ -17,6 +17,7 @@ class ANNTest:
         self.average_l2 = 0
         self.dim_red = dim_red
         self.dataset = dataset
+        self.pca_fit = pca_fit
         if self.dim_red == -1:
             self.filename = str(self.pairs) + "Pairs" + str(patch_size) + "Patchsize" + "NoPCA.txt"
         else:
@@ -38,7 +39,7 @@ class ANNTest:
             img_a = data.imread(filename_a)
             img_b = data.imread(filename_b)
             start = time.time()
-            self.field = annfield.ANNField(img_a, img_b, self.patch_size, self.dim_red)
+            self.field = annfield.ANNField(img_a, img_b, self.patch_size, self.dim_red, self.pca_fit)
             total = time.time() - start
             total_time += total
             total_l2 += (np.mean(self.field.ann_field[:, :, 2]))
@@ -63,36 +64,41 @@ class ANNTest:
         plt.ticklabel_format(style="plain", useOffset=False)
         plt.show()
 
-times = []
-averages = []
-
-test = ANNTest(1, 3, 10, "small")
+# How to run sample test
+test = ANNTest(2, 3, 10, 0.1, "small")
 test.print_result()
-test.field.write_mat()
-times.append(test.average_time)
-averages.append(test.average_l2)
 
-# test2 = ANNTest(10, 3, 2, "small")
-# times.append(test2.average_time)
-# averages.append(test2.average_l2)
+# Plot ANN field for last pair in test
+test.field.show_field()
+
+# Running a series of tests and gathering averages
+# times = []
+# averages = []
+
+# for i in range(2, 10):
+#     test = ANNTest(10, 3, i, 0.1, "small")
+#     test.print_result()
+#     times.append(test.average_time)
+#     averages.append(test.average_l2)
+
+# print(times, averages)
+
+# Write to .mat file
 #
-# test3 = ANNTest(10, 3, 3, "small")
-# times.append(test3.average_time)
-# averages.append(test3.average_l2)
-#
-# test4 = ANNTest(10, 3, 4, "small")
-# times.append(test4.average_time)
-# averages.append(test4.average_l2)
-
-# test5 = ANNTest(10, 2, 5, "small")
-# times.append(test5.average_time)
-# averages.append(test5.average_l2)
-
 # sio.savemat("..\\output\\test", {"times": times,
 #                                 "averages": averages})
-#
-# print(times, averages)
+
+# How to plot the results
 # plt.plot(times, averages, 'bo')
 # plt.plot(times, averages)
+# plt.xlabel('Seconds')
+# plt.ylabel('L2 dist')
+# title = str(pairs) + " pairs, patch size " + str(patchsize) + ", pca to " + str(pca)
+# if imagesize == "small":
+#     title += ", image size 500*208"
+# else:
+#     title += ", image size 1920*1080"
+# plt.title(title)
 # plt.ticklabel_format(style="plain", useOffset=False)
 # plt.show()
+
